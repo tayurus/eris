@@ -1,2 +1,48 @@
-.bem-block-name {
+.history-page {
+  &__table {
+    width: 100%;
+    text-align: left;
+    border-collapse: collapse;
+
+    thead {
+      color: #8c8c8c;
+    }
+
+    tr {
+      border-bottom: 1px solid #e1e1e1;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      font-weight: 400;
+      line-height: 26px;
+      vertical-align: top;
+
+      &:nth-child(1) {
+        width: 15%;
+      }
+
+      &:nth-child(3) {
+        width: 15%;
+      }
+
+      &:nth-child(4) {
+        width: 140px;
+      }
+
+      p {
+        line-height: 26px;
+        margin-bottom: 16px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        &.disabled {
+          opacity: 0.5;
+        }
+      }
+    }
+  }
 }

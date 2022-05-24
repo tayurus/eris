@@ -1,2 +1,18 @@
 .home-page {
+  padding-bottom: 80px;
+
+  &__title {
+    margin-bottom: 48px;
+    font-size: 32px;
+  }
+
+  &__projects {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
+    .project-card + .project-card {
+      margin-top: 48px;
+    }
+  }
 }

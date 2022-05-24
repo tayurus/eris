@@ -1,0 +1,42 @@
+.tag {
+  display: inline-block;
+  padding: 2px 4px;
+  line-height: 20px;
+  border: 1px solid;
+  border-radius: 4px;
+
+  &_color_blue {
+    background-color: #bccefa;
+    border-color: #858fcc;
+  }
+
+  &_color_light-blue {
+    background-color: #96e7ff;
+    border-color: #6dbcd9;
+  }
+
+  &_color_green {
+    background-color: #b3ebd6;
+    border-color: #8ec6b1;
+  }
+
+  &_color_light-green {
+    background-color: #d5e4bb;
+    border-color: #bcc998;
+  }
+
+  &_color_pink {
+    background-color: #e8c5ed;
+    border-color: #c39bc5;
+  }
+
+  &_color_light-pink {
+    background-color: #fcc2da;
+    border-color: #d197ad;
+  }
+
+  &_color_peach {
+    background-color: #fce2d9;
+    border-color: #e0ccc3;
+  }
+}
