@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 
-const baseURL = "http:localhost:5010/";
+const baseURL = "http://localhost:5010/";
 
 const setInterceptors = (api: AxiosInstance) => {
   api.interceptors.response.use(

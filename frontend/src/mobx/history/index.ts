@@ -1,7 +1,7 @@
 import { makeAutoObservable } from "mobx";
 import { Event } from "src/types/Event";
 
-export class History {
+class History {
   events: Event[] = [];
   resources: any = [];
 
@@ -9,7 +9,15 @@ export class History {
     makeAutoObservable(this);
   }
 
-  set setEvents(events: Event[]) {
+  setEvents(events: Event[]) {
     this.events = events;
   }
+
+
+  getEvents() {
+    return this.events
+  }
 }
+
+export const  HistoryModule = new History();
+
