@@ -21,13 +21,14 @@ type SortedDataItem = Partial<Event & Resource>;
 type SortedData = Record<string, Record<ResourceLabel, Array<SortedDataItem>>>;
 
 const ENTRIES_PER_PAGE = 15;
+const INITIAL_PAGE = 3;
 
 export const HistoryPage: FC<Props> = observer((props) => {
   const { className } = props;
   const [sortedData, setSortedData] = useState<SortedData>({});
   const [hasMore, setHasMore] = useState(true);
   const [ids, setIds] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
   // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
   // берем ключи итогового объекта как массив и сортируем их по дате
   const dateKeysSorted = getSortedDateKeys(sortedData);
@@ -124,18 +125,18 @@ export const HistoryPage: FC<Props> = observer((props) => {
   }
 
   async function loadMore() {
-    // if (current_page < last_page) {
-    setHasMore(false);
-    // eslint-disable-next-line @typescript-eslint/await-thenable
-    const resources = await fetchResources(
-      ids.slice((currentPage - 1) * ENTRIES_PER_PAGE, currentPage * ENTRIES_PER_PAGE)
-    );
-    updateSortedData(resources);
-    setCurrentPage(currentPage + 1);
-    setHasMore(true);
-    // } else {
-    //   setHasMore(false);
-    // }
+    if (currentPage * ENTRIES_PER_PAGE < ids.length) {
+      setHasMore(false);
+      // eslint-disable-next-line @typescript-eslint/await-thenable
+      const resources = await fetchResources(
+        ids.slice((currentPage - 1) * ENTRIES_PER_PAGE, currentPage * ENTRIES_PER_PAGE)
+      );
+      updateSortedData(resources);
+      setCurrentPage(currentPage + 1);
+      setHasMore(true);
+    } else {
+      setHasMore(false);
+    }
   }
 
   function renderDetails(event: SortedDataItem) {
@@ -163,13 +164,20 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
   useEffect(() => {
     updateSortedData(resources);
-  }, []);
+  }, [resources.length]);
 
   let drawedEventsCount = 0;
 
   return (
     <div className={classNames(b(), className, "site-container")}>
-      <InfiniteScroll useWindow={true} initialLoad={false} pageStart={0} loadMore={loadMore} hasMore={hasMore}>
+      <InfiniteScroll
+        threshold={1000}
+        useWindow={true}
+        initialLoad={false}
+        pageStart={0}
+        loadMore={loadMore}
+        hasMore={hasMore}
+      >
         <table className={classNames(b("table"), className)}>
           <thead>
             <tr>
