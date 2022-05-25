@@ -36,19 +36,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
   const dateKeysSorted = getSortedDateKeys(sortedData);
   const resources = toJS(HistoryModule.getResources());
 
-  // {
-  //   '28-03-2022': {
-  //     'appoitment': [{id}],
-  //     'observtaion': [],
-  //     'condition': [],
-  //   },
-  //   '29-03-2022': {
-  //     'appoitment': [],
-  //     'observtaion': [],
-  //     'condition': [],
-  //   },
-  // }
-
   function updateSortedData(resources: Resource[]) {
     const sortedDataCopy = JSON.parse(JSON.stringify(sortedData));
 
@@ -77,6 +64,21 @@ export const HistoryPage: FC<Props> = observer((props) => {
     return Object.keys(sortedData).sort((a, b) => +new Date(b) - +new Date(a));
   }
 
+  /**
+   * Преобразовывает все данные в объект вида
+   // {
+   //   '28-03-2022': {
+   //     'appointment': [{id: 123, value: {}}],
+   //     'observation': [],
+   //     'condition': [],
+   //   },
+   //   '29-03-2022': {
+   //     'appointment': [],
+   //     'observation': [],
+   //     'condition': [],
+   //   },
+   // }
+   * */
   function getEventsIdsInCorrectOrder(events: Event[]) {
     // генерируем объект с итоговой структурой
     const sortedData: SortedData = {};
