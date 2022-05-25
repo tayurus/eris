@@ -125,12 +125,13 @@ export const HistoryPage: FC<Props> = observer((props) => {
   }
 
   async function loadMore() {
-    if (currentPage * ENTRIES_PER_PAGE < ids.length) {
+    if (currentPage * ENTRIES_PER_PAGE <= ids.length) {
       setHasMore(false);
       // eslint-disable-next-line @typescript-eslint/await-thenable
       const resources = await fetchResources(
         ids.slice((currentPage - 1) * ENTRIES_PER_PAGE, currentPage * ENTRIES_PER_PAGE)
       );
+      HistoryModule.pushResources(resources);
       updateSortedData(resources);
       setCurrentPage(currentPage + 1);
       setHasMore(true);
