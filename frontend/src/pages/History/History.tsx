@@ -152,6 +152,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
             if (typeof it === "object") {
               return `${it.value} ${it.unit}`;
             }
+            return it;
           })
           .join(",")}`;
       }
