@@ -13,6 +13,7 @@ import { toJS } from "mobx";
 import { fetchResources } from "src/mobx/history/services/fetchResources";
 import { Resource } from "src/types/Resource";
 import InfiniteScroll from "react-infinite-scroller";
+import { Loader } from "src/components";
 
 const b = cn("history-page");
 
@@ -27,6 +28,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
   const { className } = props;
   const [sortedData, setSortedData] = useState<SortedData>({});
   const [hasMore, setHasMore] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [ids, setIds] = useState([]);
   const [currentPage, setCurrentPage] = useState(INITIAL_PAGE);
   // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
@@ -46,8 +48,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
   //     'condition': [],
   //   },
   // }
-
-  console.log("currentPage = ", currentPage);
 
   function updateSortedData(resources: Resource[]) {
     const sortedDataCopy = JSON.parse(JSON.stringify(sortedData));
@@ -126,6 +126,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
   async function loadMore() {
     if (currentPage * ENTRIES_PER_PAGE <= ids.length) {
+      setLoading(true);
       setHasMore(false);
       // eslint-disable-next-line @typescript-eslint/await-thenable
       const resources = await fetchResources(
@@ -135,6 +136,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
       updateSortedData(resources);
       setCurrentPage(currentPage + 1);
       setHasMore(true);
+      setLoading(false);
     } else {
       setHasMore(false);
     }
@@ -143,7 +145,13 @@ export const HistoryPage: FC<Props> = observer((props) => {
   function renderDetails(event: SortedDataItem) {
     if (event.details) {
       if (Array.isArray(event.values) && event.values.length) {
-        return `${event.details}: ${event.values.join(",")}`;
+        return `${event.details}: ${event.values
+          .map((it) => {
+            if (typeof it === "object") {
+              return `${it.value} ${it.unit}`;
+            }
+          })
+          .join(",")}`;
       }
       return event.details;
     }
@@ -153,14 +161,21 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
   useEffect(() => {
     const getData = async () => {
+      setLoading(true);
       const events: Event[] = await fetchEvents();
       HistoryModule.setEvents(events);
       const ids = getEventsIdsInCorrectOrder(events);
       setIds(ids);
       const resources = await fetchResources(ids.slice(0, ENTRIES_PER_PAGE * currentPage));
+      setLoading(false);
       HistoryModule.pushResources(resources);
     };
     getData();
+
+    return () => {
+      HistoryModule.clearEvents();
+      HistoryModule.clearResources();
+    };
   }, []);
 
   useEffect(() => {
@@ -171,6 +186,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
   return (
     <div className={classNames(b(), className, "site-container")}>
+      {loading && <Loader />}
       <InfiniteScroll
         threshold={1000}
         useWindow={true}
