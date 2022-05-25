@@ -12,6 +12,7 @@ import { ResourceLabel } from "src/types/ResourceLabel";
 import { toJS } from "mobx";
 import { fetchResources } from "src/mobx/history/services/fetchResources";
 import { Resource } from "src/types/Resource";
+import InfiniteScroll from "react-infinite-scroller";
 
 const b = cn("history-page");
 
@@ -19,9 +20,14 @@ type SortedDataItem = Partial<Event & Resource>;
 
 type SortedData = Record<string, Record<ResourceLabel, Array<SortedDataItem>>>;
 
+const ENTRIES_PER_PAGE = 15;
+
 export const HistoryPage: FC<Props> = observer((props) => {
   const { className } = props;
   const [sortedData, setSortedData] = useState<SortedData>({});
+  const [hasMore, setHasMore] = useState(true);
+  const [ids, setIds] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
   // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
   // берем ключи итогового объекта как массив и сортируем их по дате
   const dateKeysSorted = getSortedDateKeys(sortedData);
@@ -39,6 +45,8 @@ export const HistoryPage: FC<Props> = observer((props) => {
   //     'condition': [],
   //   },
   // }
+
+  console.log("currentPage = ", currentPage);
 
   function updateSortedData(resources: Resource[]) {
     const sortedDataCopy = JSON.parse(JSON.stringify(sortedData));
@@ -115,6 +123,21 @@ export const HistoryPage: FC<Props> = observer((props) => {
     return ids;
   }
 
+  async function loadMore() {
+    // if (current_page < last_page) {
+    setHasMore(false);
+    // eslint-disable-next-line @typescript-eslint/await-thenable
+    const resources = await fetchResources(
+      ids.slice((currentPage - 1) * ENTRIES_PER_PAGE, currentPage * ENTRIES_PER_PAGE)
+    );
+    updateSortedData(resources);
+    setCurrentPage(currentPage + 1);
+    setHasMore(true);
+    // } else {
+    //   setHasMore(false);
+    // }
+  }
+
   function renderDetails(event: SortedDataItem) {
     if (event.details) {
       if (Array.isArray(event.values) && event.values.length) {
@@ -131,7 +154,8 @@ export const HistoryPage: FC<Props> = observer((props) => {
       const events: Event[] = await fetchEvents();
       HistoryModule.setEvents(events);
       const ids = getEventsIdsInCorrectOrder(events);
-      const resources = await fetchResources(ids.slice(0, 15));
+      setIds(ids);
+      const resources = await fetchResources(ids.slice(0, ENTRIES_PER_PAGE * currentPage));
       HistoryModule.pushResources(resources);
     };
     getData();
@@ -139,52 +163,61 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
   useEffect(() => {
     updateSortedData(resources);
-  }, [resources.length]);
+  }, []);
+
+  let drawedEventsCount = 0;
 
   return (
     <div className={classNames(b(), className, "site-container")}>
-      <table className={classNames(b("table"), className)}>
-        <thead>
-          <tr>
-            <th>Event type</th>
-            <th>Details</th>
-            <th>Code</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          {dateKeysSorted.map((date) => {
-            return Object.keys(sortedData[date]).map((resource) => {
-              if (!sortedData[date][resource as ResourceLabel].length) {
-                return null;
-              }
-              return (
-                <tr>
-                  <td>
-                    <Tag text={resource} color="blue" />
-                  </td>
+      <InfiniteScroll useWindow={true} initialLoad={false} pageStart={0} loadMore={loadMore} hasMore={hasMore}>
+        <table className={classNames(b("table"), className)}>
+          <thead>
+            <tr>
+              <th>Event type</th>
+              <th>Details</th>
+              <th>Code</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {dateKeysSorted.map((date) => {
+              return Object.keys(sortedData[date]).map((resource) => {
+                drawedEventsCount++;
 
-                  <td>
-                    {sortedData[date][resource as ResourceLabel].map((event) => {
-                      return <p>{renderDetails(event)}</p>;
-                    })}
-                  </td>
+                if (
+                  !sortedData[date][resource as ResourceLabel].length ||
+                  drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
+                ) {
+                  return null;
+                }
+                return (
+                  <tr>
+                    <td>
+                      <Tag text={resource} color="blue" />
+                    </td>
 
-                  <td>
-                    {sortedData[date][resource as ResourceLabel].map((event) => {
-                      return <p>{event.code}</p>;
-                    })}
-                  </td>
+                    <td>
+                      {sortedData[date][resource as ResourceLabel].map((event) => {
+                        return <p>{renderDetails(event)}</p>;
+                      })}
+                    </td>
 
-                  <td>
-                    <p>{new Date(date).toDateString().slice(4)}</p>
-                  </td>
-                </tr>
-              );
-            });
-          })}
-        </tbody>
-      </table>
+                    <td>
+                      {sortedData[date][resource as ResourceLabel].map((event) => {
+                        return <p>{event.code}</p>;
+                      })}
+                    </td>
+
+                    <td>
+                      <p>{new Date(date).toDateString().slice(4)}</p>
+                    </td>
+                  </tr>
+                );
+              });
+            })}
+          </tbody>
+        </table>
+      </InfiniteScroll>
     </div>
   );
 });
