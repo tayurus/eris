@@ -1,7 +1,17 @@
 .site-container {
-  max-width: 1200px;
+  max-width: 1030px;
   width: 100%;
   margin: 0 auto;
   padding-right: 30px;
   padding-left: 30px;
+
+  @media (max-width: 767px) {
+    padding-right: 15px;
+    padding-left: 15px;
+  }
+
+  @media (max-width: 479px) {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
 }

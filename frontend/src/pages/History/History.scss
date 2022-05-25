@@ -20,15 +20,27 @@
       vertical-align: top;
 
       &:nth-child(1) {
-        width: 15%;
+        width: 120px;
+
+        @media (max-width: 767px) {
+          width: 100px;
+        }
       }
 
       &:nth-child(3) {
-        width: 15%;
+        width: 140px;
+
+        @media (max-width: 767px) {
+          width: 100px;
+        }
       }
 
       &:nth-child(4) {
         width: 140px;
+
+        @media (max-width: 767px) {
+          width: 100px;
+        }
       }
 
       p {
@@ -42,6 +54,15 @@
         &.disabled {
           opacity: 0.5;
         }
+      }
+
+      @media (max-width: 767px) {
+        padding: 8px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 480px) {
+        width: auto !important;
       }
     }
   }

@@ -24,10 +24,19 @@
     font-size: 24px;
     color: #ffffff;
     background-color: #595D9F;
+
+    @media (max-width: 767px) {
+      padding: 10px;
+      font-size: 20px;
+    }
   }
 
   &__desc {
     font-size: 16px;
+
+    @media (max-width: 767px) {
+      font-size: 14px;
+    }
   }
 
   &__link {
@@ -42,5 +51,13 @@
     &:hover {
       background-color: #6267B0;
     }
+
+    @media (max-width: 767px) {
+      font-size: 16px;
+    }
+  }
+
+  @media (max-width: 767px) {
+    padding: 8px 8px 12px;
   }
 }

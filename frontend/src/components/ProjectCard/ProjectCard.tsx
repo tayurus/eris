@@ -16,7 +16,7 @@ export const ProjectCard: FC<Props> = (props) => {
       </div>
       <h3 className={classNames(b("title"))}>{title}</h3>
       <p className={classNames(b("desc"))}>{desc}</p>
-      <a className={classNames(b("link"))} href={url}>
+      <a className={classNames(b("link"))} href={url} target="_blank">
         {url}
       </a>
     </div>
