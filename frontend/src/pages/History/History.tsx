@@ -1,4 +1,4 @@
-import React, { FC, useEffect } from "react";
+import React, { FC, useEffect, useState } from "react";
 import classNames from "classnames/dedupe";
 import { cn } from "src/helpers/bem";
 import { Props } from "./props";
@@ -11,15 +11,25 @@ import { Event } from "src/types/Event";
 import { ResourceLabel } from "src/types/ResourceLabel";
 import { toJS } from "mobx";
 import { fetchResources } from "src/mobx/history/services/fetchResources";
+import { Resource } from "src/types/Resource";
 
 const b = cn("history-page");
 
+type SortedDataItem = Partial<Event & Resource>;
+
+type SortedData = Record<string, Record<ResourceLabel, Array<SortedDataItem>>>;
+
 export const HistoryPage: FC<Props> = observer((props) => {
   const { className } = props;
+  const [sortedData, setSortedData] = useState<SortedData>({});
+  // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
+  // берем ключи итогового объекта как массив и сортируем их по дате
+  const dateKeysSorted = getSortedDateKeys(sortedData);
+  const resources = toJS(HistoryModule.getResources());
 
   // {
   //   '28-03-2022': {
-  //     'appoitment': [],
+  //     'appoitment': [{id}],
   //     'observtaion': [],
   //     'condition': [],
   //   },
@@ -30,14 +40,43 @@ export const HistoryPage: FC<Props> = observer((props) => {
   //   },
   // }
 
+  function updateSortedData(resources: Resource[]) {
+    const sortedDataCopy = JSON.parse(JSON.stringify(sortedData));
+
+    // идем по всем датам
+    Object.keys(sortedData).forEach((date) => {
+      // идем по всем ресурсам
+      Object.keys(sortedData[date]).forEach((resourceKey) => {
+        // идем по всем событиям внутри данного ресурса
+        sortedData[date][resourceKey as ResourceLabel].forEach((resource, index) => {
+          const resourceId = `${resource.resource}/${resource.id}`;
+          const resourceIndex = resources.map((it) => it.id).indexOf(resourceId);
+
+          if (resourceIndex !== -1) {
+            const eventForUpdate = sortedData[date][resourceKey as ResourceLabel][index];
+            const updateData = resources[resourceIndex];
+            sortedDataCopy[date][resourceKey as ResourceLabel][index] = { ...eventForUpdate, ...updateData };
+          }
+        });
+      });
+    });
+
+    setSortedData(sortedDataCopy);
+  }
+
+  function getSortedDateKeys(sortedData: SortedData) {
+    console.log("sortedData", sortedData);
+    return Object.keys(sortedData).sort((a, b) => +new Date(b) - +new Date(a));
+  }
+
   function getEventsIdsInCorrectOrder(events: Event[]) {
     // генерируем объект с итоговой структурой
-    const sortedData: Record<string, Record<ResourceLabel, Event[]>> = {};
+    const sortedData: SortedData = {};
 
     // идем по всем events
     events.forEach((event) => {
       // берем дату данного event без времени
-      const dateWithoutTime = event.date.slice(0, 10);
+      const dateWithoutTime = event.date;
 
       // если в итоговом объекте нет ключа с данной датой
       if (!sortedData[dateWithoutTime]) {
@@ -61,13 +100,11 @@ export const HistoryPage: FC<Props> = observer((props) => {
       }
     });
 
+    setSortedData(sortedData);
+
     // итоговый массив со всеми id в том порядке, в котором их нужно запрашивать с бека
     const ids: string[] = [];
-
-    // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
-    // берем ключи итогового объекта как массив и сортируем их по дате
-    const dateKeysSorted = Object.keys(sortedData).sort((a, b) => +new Date(b) - +new Date(a));
-
+    const dateKeysSorted = getSortedDateKeys(sortedData);
     // идем по объектам, которые принадлежат отсортированым датам
     dateKeysSorted.forEach((dateKey) => {
       // идем по ключам данного обьекта и пушим в итоговый массив id
@@ -79,15 +116,31 @@ export const HistoryPage: FC<Props> = observer((props) => {
     return ids;
   }
 
+  function renderDetails(event: SortedDataItem) {
+    if (event.details) {
+      if (Array.isArray(event.values) && event.values.length) {
+        return `${event.details}: ${event.values.join(",")}`;
+      }
+      return event.details;
+    }
+
+    return "";
+  }
+
   useEffect(() => {
     const getData = async () => {
       const events: Event[] = await fetchEvents();
       HistoryModule.setEvents(events);
       const ids = getEventsIdsInCorrectOrder(events);
-      fetchResources(ids.slice(0, 15));
+      const resources = await fetchResources(ids.slice(0, 15));
+      HistoryModule.pushResources(resources);
     };
     getData();
   }, []);
+
+  useEffect(() => {
+    updateSortedData(resources);
+  }, [resources.length]);
 
   return (
     <div className={classNames(b(), className, "site-container")}>
@@ -101,44 +154,33 @@ export const HistoryPage: FC<Props> = observer((props) => {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>
-              <Tag text="Appointment" color="light-green" />
-            </td>
-            <td>
-              <p>At home exam</p>
-            </td>
-            <td></td>
-            <td>
-              <p>Mar 28, 2022</p>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <Tag text="Appointment" color="blue" />
-            </td>
-            <td>
-              <p>At home exam</p>
-              <p>At home exam2</p>
-              <p>At home exam3</p>
-            </td>
-            <td></td>
-            <td>
-              <p>Mar 28, 2022</p>
-              <p className="disabled">Mar 28, 2022</p>
-              <p className="disabled">Mar 28, 2022</p>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <Tag text="Appointment" color="peach" />
-            </td>
-            <td>
-              <p>At home exam t home exam t home exam t home exam t home exam t home exam t home exam</p>
-            </td>
-            <td>228073543B</td>
-            <td>Mar 28, 2022</td>
-          </tr>
+          {dateKeysSorted.map((date) => {
+            return Object.keys(sortedData[date]).map((resource) => {
+              return (
+                <tr>
+                  <td>
+                    <Tag text={resource} color="blue" />
+                  </td>
+
+                  <td>
+                    {sortedData[date][resource as ResourceLabel].map((event) => {
+                      return <p>{renderDetails(event)}</p>;
+                    })}
+                  </td>
+
+                  <td>
+                    {sortedData[date][resource as ResourceLabel].map((event) => {
+                      return <p>{event.code}</p>;
+                    })}
+                  </td>
+
+                  <td>
+                    <p>{new Date(date).toDateString().slice(4)}</p>
+                  </td>
+                </tr>
+              );
+            });
+          })}
         </tbody>
       </table>
     </div>

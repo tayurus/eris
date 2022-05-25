@@ -15,7 +15,7 @@ class History {
   }
 
   pushResources(resources: Resource[]) {
-    this.resources.concat(resources);
+    this.resources = this.resources.concat(resources);
   }
 
   getResources() {
