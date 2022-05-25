@@ -7,7 +7,10 @@ import { Tag } from "src/components";
 import { observer } from "mobx-react-lite";
 import { fetchEvents } from "src/mobx/history/services/fetchEvents";
 import { HistoryModule } from "src/mobx/history";
-import {Event} from "src/types/Event";
+import { Event } from "src/types/Event";
+import { ResourceLabel } from "src/types/ResourceLabel";
+import { toJS } from "mobx";
+import { fetchResources } from "src/mobx/history/services/fetchResources";
 
 const b = cn("history-page");
 
@@ -27,39 +30,67 @@ export const HistoryPage: FC<Props> = observer((props) => {
   //   },
   // }
 
-  // итоговый массив со всеми id в том порядке, в котором их нужно запрашивать с бека
+  function getEventsIdsInCorrectOrder(events: Event[]) {
+    // генерируем объект с итоговой структурой
+    const sortedData: Record<string, Record<ResourceLabel, Event[]>> = {};
 
-  // генерируем объект с итоговой структурой
     // идем по всем events
+    events.forEach((event) => {
       // берем дату данного event без времени
+      const dateWithoutTime = event.date.slice(0, 10);
 
       // если в итоговом объекте нет ключа с данной датой
+      if (!sortedData[dateWithoutTime]) {
         // создаем данный ключ
+        sortedData[dateWithoutTime] = {
+          Appointment: [],
+          AllergyIntolerance: [],
+          CarePlan: [],
+          Condition: [],
+          Immunization: [],
+          MedicationStatement: [],
+          Observation: [],
+          Procedure: [],
+        };
+      }
 
       // если по данной дате уже есть массив с ключом resource
+      if (sortedData[dateWithoutTime][event.resource]) {
         // пушим в этот массив данный event
-      // иначе
-        // создаем массив с данным event
+        sortedData[dateWithoutTime][event.resource].push(event);
+      }
+    });
 
-  // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
+    // итоговый массив со всеми id в том порядке, в котором их нужно запрашивать с бека
+    const ids: string[] = [];
+
+    // преобразовываем этот объект в массив id, которые будем запрашивать по 15 штук из resources
     // берем ключи итогового объекта как массив и сортируем их по дате
+    const dateKeysSorted = Object.keys(sortedData).sort((a, b) => +new Date(b) - +new Date(a));
+
     // идем по объектам, которые принадлежат отсортированым датам
-      // идем по ключам данного обьекта
-        // пушим в итоговый массив id
+    dateKeysSorted.forEach((dateKey) => {
+      // идем по ключам данного обьекта и пушим в итоговый массив id
+      Object.values(sortedData[dateKey]).forEach((eventArray) =>
+        eventArray.forEach((event) => ids.push(`${event.resource}/${event.id}`))
+      );
+    });
 
-
+    return ids;
+  }
 
   useEffect(() => {
     const getData = async () => {
       const events: Event[] = await fetchEvents();
-      HistoryModule.setEvents(events)
-    }
-    getData()
+      HistoryModule.setEvents(events);
+      const ids = getEventsIdsInCorrectOrder(events);
+      fetchResources(ids.slice(0, 15));
+    };
+    getData();
   }, []);
 
   return (
     <div className={classNames(b(), className, "site-container")}>
-
       <table className={classNames(b("table"), className)}>
         <thead>
           <tr>
