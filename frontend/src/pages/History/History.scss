@@ -1,4 +1,11 @@
 .history-page {
+  &__details {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
   &__table {
     width: 100%;
     text-align: left;

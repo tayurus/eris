@@ -225,7 +225,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
 
                     <td>
                       {sortedData[date][resource as ResourceLabel].map((event) => {
-                        return <p>{renderDetails(event)}</p>;
+                        return <p className={b("details")}>{renderDetails(event)}</p>;
                       })}
                     </td>
 
