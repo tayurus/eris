@@ -14,10 +14,11 @@ import { fetchResources } from "src/mobx/history/services/fetchResources";
 import { Resource } from "src/types/Resource";
 import InfiniteScroll from "react-infinite-scroller";
 import { Loader } from "src/components";
+import { AppointmentMap } from "src/helpers/constants";
+import { SortedDataItem } from "src/types/SortedDataItem";
+import { renderDetails } from "src/helpers/detailts";
 
 const b = cn("history-page");
-
-type SortedDataItem = Partial<Event & Resource>;
 
 type SortedData = Record<string, Record<ResourceLabel, Array<SortedDataItem>>>;
 
@@ -144,24 +145,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
     }
   }
 
-  function renderDetails(event: SortedDataItem) {
-    if (event.details) {
-      if (Array.isArray(event.values) && event.values.length) {
-        return `${event.details}: ${event.values
-          .map((it) => {
-            if (typeof it === "object") {
-              return `${it.value} ${it.unit}`;
-            }
-            return it;
-          })
-          .join(",")}`;
-      }
-      return event.details;
-    }
-
-    return "";
-  }
-
   function sortEvents(event1: SortedDataItem, event2: SortedDataItem) {
     return +new Date(event2.date) - +new Date(event1.date);
   }
@@ -225,7 +208,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
                 return (
                   <tr>
                     <td>
-                      <Tag text={resource} color="blue" />
+                      <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
                     </td>
 
                     <td>
