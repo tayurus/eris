@@ -65,7 +65,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
   }
 
   function getSortedDateKeys(sortedData: SortedData) {
-    console.log("sortedData", sortedData);
     return Object.keys(sortedData).sort((a, b) => +new Date(b) - +new Date(a));
   }
 
@@ -76,7 +75,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
     // идем по всем events
     events.forEach((event) => {
       // берем дату данного event без времени
-      const dateWithoutTime = event.date;
+      const dateWithoutTime = event.date.slice(0, 10);
 
       // если в итоговом объекте нет ключа с данной датой
       if (!sortedData[dateWithoutTime]) {
@@ -156,6 +155,9 @@ export const HistoryPage: FC<Props> = observer((props) => {
         <tbody>
           {dateKeysSorted.map((date) => {
             return Object.keys(sortedData[date]).map((resource) => {
+              if (!sortedData[date][resource as ResourceLabel].length) {
+                return null;
+              }
               return (
                 <tr>
                   <td>
