@@ -161,6 +161,10 @@ export const HistoryPage: FC<Props> = observer((props) => {
     return "";
   }
 
+  function sortEvents(event1: SortedDataItem, event2: SortedDataItem) {
+    return +new Date(event2.date) - +new Date(event1.date);
+  }
+
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
@@ -224,7 +228,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
                     </td>
 
                     <td>
-                      {sortedData[date][resource as ResourceLabel].map((event) => {
+                      {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
                         return <p className={b("details")}>{renderDetails(event)}</p>;
                       })}
                     </td>
