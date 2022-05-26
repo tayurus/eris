@@ -1,9 +1,10 @@
 .tag {
   display: inline-block;
-  padding: 2px 4px;
-  line-height: 20px;
+  padding: 2px 6px;
+  line-height: 16px;
+  letter-spacing: 0.1px;
   border: 1px solid;
-  border-radius: 4px;
+  border-radius: 6px;
 
   &_color_blue {
     background-color: #bccefa;
@@ -35,7 +36,12 @@
     border-color: #d197ad;
   }
 
-  &_color_peach {
+  &_color_brown {
+    background-color: #e7b19f;
+    border-color: #e8b4a2;
+  }
+
+  &_color_brown-light {
     background-color: #fce2d9;
     border-color: #e0ccc3;
   }

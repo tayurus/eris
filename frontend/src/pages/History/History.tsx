@@ -24,6 +24,7 @@ type SortedData = Record<string, Record<ResourceLabel, Array<SortedDataItem>>>;
 
 const ENTRIES_PER_PAGE = 15;
 const INITIAL_PAGE = 3;
+const MOBILE_BREAKPOINT = 639;
 
 export const HistoryPage: FC<Props> = observer((props) => {
   const { className } = props;
@@ -36,7 +37,7 @@ export const HistoryPage: FC<Props> = observer((props) => {
   // берем ключи итогового объекта как массив и сортируем их по дате
   const dateKeysSorted = getSortedDateKeys(sortedData);
   const resources = toJS(HistoryModule.getResources());
-
+  const isMobile = window.innerWidth <= MOBILE_BREAKPOINT;
   function updateSortedData(resources: Resource[]) {
     const sortedDataCopy = JSON.parse(JSON.stringify(sortedData));
 
@@ -185,53 +186,116 @@ export const HistoryPage: FC<Props> = observer((props) => {
         loadMore={loadMore}
         hasMore={hasMore}
       >
-        <table className={classNames(b("table"), className)}>
-          <thead>
-            <tr>
-              <th>Event type</th>
-              <th>Details</th>
-              <th>Code</th>
-              <th>Date</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dateKeysSorted.map((date) => {
-              return Object.keys(sortedData[date]).map((resource) => {
-                drawedEventsCount++;
+        {isMobile ? (
+          <table className={classNames(b("table-mobile"), className)}>
+            <tbody>
+              {dateKeysSorted.map((date) => {
+                return Object.keys(sortedData[date]).map((resource) => {
+                  drawedEventsCount++;
 
-                if (
-                  !sortedData[date][resource as ResourceLabel].length ||
-                  drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
-                ) {
-                  return null;
-                }
-                return (
-                  <tr>
-                    <td>
-                      <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
-                    </td>
+                  if (
+                    !sortedData[date][resource as ResourceLabel].length ||
+                    drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
+                  ) {
+                    return null;
+                  }
+                  return (
+                    <tr>
+                      <td>
+                        <div className={classNames(b("table-mobile-cell"))}>
+                          <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
+                          <p>{new Date(date).toDateString().slice(4)}</p>
+                          <div className={classNames(b("table-mobile-items"))}>
+                            {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
+                              return (
+                                <div className={classNames(b("table-mobile-item"))}>
+                                  <p className={b("details")}>{renderDetails(event)}</p>
+                                  <p>{event.code}</p>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                });
+              })}
+            </tbody>
+          </table>
+        ) : (
+          <table className={classNames(b("table"), className)}>
+            <thead>
+              <tr>
+                <th>Event type</th>
+                <th>Details</th>
+                <th>Code</th>
+                <th>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {dateKeysSorted.map((date) => {
+                return Object.keys(sortedData[date]).map((resource) => {
+                  drawedEventsCount++;
+                  if (
+                    !sortedData[date][resource as ResourceLabel].length ||
+                    drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
+                  ) {
+                    return null;
+                  }
+                  return sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event, index, arr) => {
+                    return (
+                      <tr style={{ borderBottom: index === arr.length - 1 ? "1px solid #e1e1e1" : "none" }}>
+                        {index === 0 ? (
+                          <td>
+                            <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
+                          </td>
+                        ) : (
+                          <td></td>
+                        )}
+                        <td>
+                          <p className={b("details")}>{renderDetails(event)}</p>
+                        </td>
+                        <td>
+                          <p>{event.code}</p>
+                        </td>
+                        <td>
+                          <p>{new Date(date).toDateString().slice(4)}</p>
+                        </td>
+                      </tr>
+                    );
+                  });
 
-                    <td>
-                      {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
-                        return <p className={b("details")}>{renderDetails(event)}</p>;
-                      })}
-                    </td>
-
-                    <td>
-                      {sortedData[date][resource as ResourceLabel].map((event) => {
-                        return <p>{event.code}</p>;
-                      })}
-                    </td>
-
-                    <td>
-                      <p>{new Date(date).toDateString().slice(4)}</p>
-                    </td>
-                  </tr>
-                );
-              });
-            })}
-          </tbody>
-        </table>
+                  // return (
+                  //   <tr>
+                  //     <td>
+                  //       <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
+                  //     </td>
+                  //
+                  //     <td>
+                  //       {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
+                  //         return <p className={b("details")}>{renderDetails(event)}</p>;
+                  //       })}
+                  //     </td>
+                  //
+                  //     <td>
+                  //       {sortedData[date][resource as ResourceLabel].map((event) => {
+                  //         return <p>{event.code}</p>;
+                  //       })}
+                  //     </td>
+                  //
+                  //     <td>
+                  //       {sortedData[date][resource as ResourceLabel].map((event) => {
+                  //         return <p>{new Date(date).toDateString().slice(4)}</p>;
+                  //       })}
+                  //     </td>
+                  //   </tr>
+                  // );
+                });
+              })}
+            </tbody>
+          </table>
+        )}
       </InfiniteScroll>
     </div>
   );
