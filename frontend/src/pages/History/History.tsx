@@ -260,37 +260,11 @@ export const HistoryPage: FC<Props> = observer((props) => {
                           <p>{event.code}</p>
                         </td>
                         <td>
-                          <p>{new Date(date).toDateString().slice(4)}</p>
+                          <p style={{ opacity: index !== 0 ? 0.3 : 1 }}>{new Date(date).toDateString().slice(4)}</p>
                         </td>
                       </tr>
                     );
                   });
-
-                  // return (
-                  //   <tr>
-                  //     <td>
-                  //       <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
-                  //     </td>
-                  //
-                  //     <td>
-                  //       {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
-                  //         return <p className={b("details")}>{renderDetails(event)}</p>;
-                  //       })}
-                  //     </td>
-                  //
-                  //     <td>
-                  //       {sortedData[date][resource as ResourceLabel].map((event) => {
-                  //         return <p>{event.code}</p>;
-                  //       })}
-                  //     </td>
-                  //
-                  //     <td>
-                  //       {sortedData[date][resource as ResourceLabel].map((event) => {
-                  //         return <p>{new Date(date).toDateString().slice(4)}</p>;
-                  //       })}
-                  //     </td>
-                  //   </tr>
-                  // );
                 });
               })}
             </tbody>
