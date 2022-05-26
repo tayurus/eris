@@ -46,8 +46,8 @@ export const HomePage: FC<Props> = (props) => {
       <h2 className={classNames(b("title"))}>My Last Projects</h2>
 
       <div className={classNames(b("projects"))}>
-        {data.map((it) => (
-          <ProjectCard {...it} />
+        {data.map((it, index) => (
+          <ProjectCard key={index} {...it} />
         ))}
       </div>
     </div>

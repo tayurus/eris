@@ -17,6 +17,7 @@ import { Loader } from "src/components";
 import { AppointmentMap } from "src/helpers/constants";
 import { SortedDataItem } from "src/types/SortedDataItem";
 import { renderDetails } from "src/helpers/detailts";
+import { sortEvents } from "src/helpers/events";
 
 const b = cn("history-page");
 
@@ -146,10 +147,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
     }
   }
 
-  function sortEvents(event1: SortedDataItem, event2: SortedDataItem) {
-    return +new Date(event2.date) - +new Date(event1.date);
-  }
-
   useEffect(() => {
     const getData = async () => {
       setLoading(true);
@@ -191,8 +188,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
             <tbody>
               {dateKeysSorted.map((date) => {
                 return Object.keys(sortedData[date]).map((resource) => {
-                  drawedEventsCount++;
-
                   if (
                     !sortedData[date][resource as ResourceLabel].length ||
                     drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
@@ -200,15 +195,16 @@ export const HistoryPage: FC<Props> = observer((props) => {
                     return null;
                   }
                   return (
-                    <tr>
+                    <tr key={`${date}-${resource}-${drawedEventsCount}`}>
                       <td>
                         <div className={classNames(b("table-mobile-cell"))}>
                           <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
                           <p>{new Date(date).toDateString().slice(4)}</p>
                           <div className={classNames(b("table-mobile-items"))}>
                             {sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event) => {
+                              drawedEventsCount++;
                               return (
-                                <div className={classNames(b("table-mobile-item"))}>
+                                <div key={event.id} className={classNames(b("table-mobile-item"))}>
                                   <p className={b("details")}>{renderDetails(event)}</p>
                                   <p>{event.code}</p>
                                 </div>
@@ -236,7 +232,6 @@ export const HistoryPage: FC<Props> = observer((props) => {
             <tbody>
               {dateKeysSorted.map((date) => {
                 return Object.keys(sortedData[date]).map((resource) => {
-                  drawedEventsCount++;
                   if (
                     !sortedData[date][resource as ResourceLabel].length ||
                     drawedEventsCount >= currentPage * ENTRIES_PER_PAGE
@@ -244,8 +239,12 @@ export const HistoryPage: FC<Props> = observer((props) => {
                     return null;
                   }
                   return sortedData[date][resource as ResourceLabel].sort(sortEvents).map((event, index, arr) => {
+                    drawedEventsCount++;
                     return (
-                      <tr style={{ borderBottom: index === arr.length - 1 ? "1px solid #e1e1e1" : "none" }}>
+                      <tr
+                        key={`${date}-${resource}-${drawedEventsCount}`}
+                        style={{ borderBottom: index === arr.length - 1 ? "1px solid #e1e1e1" : "none" }}
+                      >
                         {index === 0 ? (
                           <td>
                             <Tag text={resource} color={AppointmentMap[resource as ResourceLabel]} />
