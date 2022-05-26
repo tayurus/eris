@@ -3,7 +3,7 @@ import classNames from "classnames/dedupe";
 import { cn } from "src/helpers/bem";
 import { Props } from "./props";
 import "./Header.scss";
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 
 const b = cn("site-header");
 
@@ -16,14 +16,26 @@ export const Header: FC<Props> = (props) => {
         <nav className={classNames(b("nav"))}>
           <ul className={classNames(b("nav-list"))}>
             <li>
-              <Link className={classNames(b("nav-link"))} to="/">
+              <NavLink
+                style={(active) =>
+                  active.isActive ? { borderBottom: `5px solid tomato` } : { borderBottom: `5px solid transparent` }
+                }
+                className={classNames(b("nav-link"))}
+                to="/"
+              >
                 Home
-              </Link>
+              </NavLink>
             </li>
             <li>
-              <Link className={classNames(b("nav-link"))} to="/history">
+              <NavLink
+                style={(active) =>
+                  active.isActive ? { borderBottom: `5px solid tomato` } : { borderBottom: `5px solid transparent` }
+                }
+                className={classNames(b("nav-link"))}
+                to="/history"
+              >
                 History
-              </Link>
+              </NavLink>
             </li>
           </ul>
         </nav>
